@@ -1,0 +1,8 @@
+.DS_Store
+.bundle/
+log/*.log
+pkg/
+spec/config/banks.yml
+*.gem
+coverage/
+spec/fixtures/vcr_cassettes/*.yml
