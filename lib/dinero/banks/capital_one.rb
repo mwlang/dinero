@@ -45,13 +45,6 @@ module Dinero
         authenticated? ? connection.navigate.to(@accounts_summary_url) : login!
       end
   
-      def accounts_summary_document
-        return @accounts_summary_document if @accounts_summary_document
-
-        goto_accounts_summary_page
-        @accounts_summary_document = Nokogiri::HTML connection.page_source
-      end
-      
       # extract account data from the account summary page
       def accounts
         return @accounts if @accounts

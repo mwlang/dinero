@@ -56,13 +56,6 @@ module Dinero
         wait.until { accounts_summary_page_fully_loaded? }
       end
   
-      def accounts_summary_document
-        return @accounts_summary_document if @accounts_summary_document
-
-        goto_accounts_summary_page
-        @accounts_summary_document = Nokogiri::HTML connection.page_source
-      end
-      
       def balance_row? row
         row[1] =~ /Total/
       end
