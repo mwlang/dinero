@@ -13,7 +13,6 @@ require 'vcr'
 VCR.configure do |config|
   config.cassette_library_dir = "spec/fixtures/vcr_cassettes"
   config.hook_into :webmock
-  FileUtils.mkdir "log"
   config.debug_logger = File.open('log/vcr.log', 'w')
   config.ignore_request do |request|
     URI(request.uri).path == "/shutdown"

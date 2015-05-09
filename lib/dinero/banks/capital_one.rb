@@ -6,51 +6,50 @@ module Dinero
       CONNECTION_TIMEOUT = 10
 
       def default_options
-        { timeout: CONNECTION_TIMEOUT }
+        { timeout: CONNECTION_TIMEOUT, login_url: LOGIN_URL }
+      end
+
+      def post_username!
+        connection.switch_to.frame "loginframe"
+        wait.until { connection.find_element(id: "uname") }
+        username_field = connection.find_element(id: "uname")
+        username_field.send_keys username
       end
       
-      def signin!
+      def post_password!
         signin_form = connection.find_element(name: "login")
-        username_field = signin_form.find_element(id: "uname")
         password_field = signin_form.find_element(id: "cofisso_ti_passw")
         login_btn = signin_form.find_element(id: "cofisso_btn_login")
     
-        username_field.send_keys username
         password_field.send_keys password
         login_btn.click
-        wait.until { on_accounts_summary_page? }
       end
       
-      def authenticate!
-        return if authenticated?
-        
-        connection.navigate.to LOGIN_URL    
-        connection.switch_to.frame "loginframe"
+      def post_credentials!
+        post_username!
+        post_password!
+      end
       
-        wait.until { connection.find_element(id: "uname") }
-        signin!
-        
+      def after_successful_login
         # the subdomain frequently changes, so capture the actual URL 
         # so we can return to the page if necessary.
         @accounts_summary_url = connection.current_url
-
-        @authenticated = true
       end
-  
+      
       def on_accounts_summary_page?
         URI(connection.current_url).path == ACCOUNTS_SUMMARY_PATH
       end
       
-      def goto_account_summary_page
+      def goto_accounts_summary_page
         return if authenticated? && on_accounts_summary_page?
-        authenticated? ? connection.navigate.to(@accounts_summary_url) : authenticate!
+        authenticated? ? connection.navigate.to(@accounts_summary_url) : login!
       end
   
-      def account_summary_document
-        return @account_summary_document if @account_summary_document
+      def accounts_summary_document
+        return @accounts_summary_document if @accounts_summary_document
 
-        goto_account_summary_page
-        @account_summary_document = Nokogiri::HTML connection.page_source
+        goto_accounts_summary_page
+        @accounts_summary_document = Nokogiri::HTML connection.page_source
       end
       
       # extract account data from the account summary page
@@ -58,7 +57,7 @@ module Dinero
         return @accounts if @accounts
     
         # find the bricklet articles, which contains the balance data
-        articles = account_summary_document.xpath("//article").
+        articles = accounts_summary_document.xpath("//article").
           select{|a| a.attributes["class"].value == "bricklet"}
 
         @accounts = articles.map do |article|

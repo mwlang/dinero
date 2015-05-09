@@ -4,8 +4,19 @@ module Dinero
       LOGIN_URL = "https://secure.capitalone360.com/myaccount/banking/login.vm"
       ACCOUNTS_SUMMARY_URL = "https://secure.capitalone360.com/myaccount/banking/account_summary.vm"
   
+      def default_options
+        { login_url: LOGIN_URL }
+      end
+
       def post_username!
-        signin_form = connection.find_element(id: 'Signin')
+        begin
+          wait.until { connection.find_element(id: "Signin").displayed? }
+        rescue
+          connection.save_screenshot('log/capital_one_360_signin_failed.png')
+          raise
+        end
+
+        signin_form = connection.find_element(id: "Signin")
         username_field = connection.find_element(id: "ACNID")
         raise "Sign in Form not reached!" unless username_field && signin_form
     
@@ -14,16 +25,20 @@ module Dinero
       end
   
       def post_password!
-        return if authenticated?
+        begin
+          wait.until { connection.find_element(id: "PasswordForm").displayed? }
+        rescue
+          connection.save_screenshot('log/capital_one_360_password_failed.png')
+          raise
+        end
+
         password_form = connection.find_element(id: "PasswordForm")
         password_field = connection.find_element(id: "currentPassword_TLNPI")
-        password_field.send_keys password
         submit_button = connection.find_element :css, ".bluebutton > a:nth-child(1)"
-        submit_button.click
+        raise "Password Form not reached!" unless password_field && password_form
 
-        raise "Could not authenticate" unless on_accounts_summary_page?
-        
-        @authenticated = true
+        password_field.send_keys password
+        submit_button.click
       end
   
       def accounts_summary_page_fully_loaded?
@@ -35,23 +50,17 @@ module Dinero
         connection.current_url == ACCOUNTS_SUMMARY_URL
       end
 
-      def login!
-        connection.navigate.to LOGIN_URL    
-        post_username!
-        post_password!
-      end
-      
-      def goto_account_summary_page
+      def goto_accounts_summary_page
         return if authenticated? && on_accounts_summary_page?
         authenticated? ? connection.navigate.to(ACCOUNTS_SUMMARY_URL) : login!
         wait.until { accounts_summary_page_fully_loaded? }
       end
   
       def accounts_summary_document
-        return @account_summary_document if @account_summary_document
+        return @accounts_summary_document if @accounts_summary_document
 
-        goto_account_summary_page
-        @account_summary_document = Nokogiri::HTML connection.page_source
+        goto_accounts_summary_page
+        @accounts_summary_document = Nokogiri::HTML connection.page_source
       end
       
       def balance_row? row
@@ -69,6 +78,11 @@ module Dinero
         return :unknown
       end
 
+      def sanitize value
+        return unless value
+        value.split("\u00A0").first.strip
+      end
+      
       # extract account data from the account summary page
       def accounts
         return @accounts if @accounts
@@ -79,11 +93,13 @@ module Dinero
         tables = accounts_summary_document.xpath("//table")
         account_tables = tables.map do |table| 
           rows = table.xpath(".//tr").map{|row| row.xpath(".//td|.//th").
-            map{|cell| cell.text.strip.gsub(/\s+|\t|\u00A0/, " ")}}
+            map{|cell| cell.text.strip.gsub(/\s+|\t/, " ")}}
         end.reject{|table| promo_table? table }
 
         # Turn tablular data into Account classes
         account_tables.map do |table|
+
+          # the header row tells us what kind of account we're looking at
           header = table.shift
           account_type = decipher_account_type header[0]
           has_account_number = header[1] =~ /Account/
@@ -93,8 +109,12 @@ module Dinero
 
           # turn those rows into accounts
           rows.each do |row|
-            name = row.shift
-            number = (has_account_number ? row.shift : nil)
+            name = sanitize(row.shift)
+            number = (has_account_number ? sanitize(row.shift) : nil)
+            if number.nil? || name =~ /(\.{4})(\d+)\Z/
+              number = name.match(/(\.{4})(\d+)\Z/).captures.join
+              name = name.gsub(number,'')
+            end
             balance = row.shift
             available = row.shift || balance
             @accounts << Account.new(account_type, name, number, balance, available)

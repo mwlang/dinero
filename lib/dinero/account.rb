@@ -9,7 +9,6 @@ module Dinero
       @number = number
       @balance = balance.scan(/[\d|\-|\.]+/).join.to_f
       @available = available.scan(/[\d|\-|\.]+/).join.to_f
-      @accounts = nil
     end
   end
 end

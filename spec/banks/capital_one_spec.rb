@@ -3,14 +3,14 @@ require 'spec_helper'
 if bank_configured? :capital_one 
 
   RSpec.describe Dinero::Bank::CapitalOne do
-    let(:bank_configuration) { bank_configurations["capital_one"] }
-    let(:account_types) { bank_configuration["account_types"].sort }
-    let(:accounts) { bank_configuration["accounts"] }
+    let(:bank_configuration) { bank_configurations[:capital_one] }
+    let(:account_types) { bank_configuration[:account_types].sort }
+    let(:accounts) { bank_configuration[:accounts] }
     
     before(:all) do
       VCR.use_cassette("accounts_capital_one") do
-        @bank = Dinero::Bank::CapitalOne.new(bank_configurations["capital_one"])
-        @bank.account_summary_document
+        @bank = Dinero::Bank::CapitalOne.new(bank_configurations[:capital_one])
+        @bank.accounts
       end
     end
 
@@ -19,16 +19,16 @@ if bank_configured? :capital_one
     end
   
     it "authenticates" do 
-      @bank.authenticate!
+      @bank.login!
       expect(@bank.authenticated?).to eq true
     end
   
-    it "retrieves account_summary_document" do
-      expect(@bank.account_summary_document).to be_kind_of Nokogiri::HTML::Document
+    it "retrieves accounts_summary_document" do
+      expect(@bank.accounts_summary_document).to be_kind_of Nokogiri::HTML::Document
     end
   
     it "has article sections" do
-      expect(@bank.account_summary_document.xpath("//article").size).to eq accounts + 1
+      expect(@bank.accounts_summary_document.xpath("//article").size).to eq accounts + 1
     end
 
     it "gets expected accounts" do

@@ -3,12 +3,12 @@ require 'spec_helper'
 if bank_configured? :capital_one_360
 
   RSpec.describe Dinero::Bank::CapitalOne360 do
-    let(:bank_configuration) { bank_configurations["capital_one_360"] }
-    let(:account_types) { bank_configuration["account_types"].sort }
+    let(:bank_configuration) { bank_configurations[:capital_one_360] }
+    let(:account_types) { bank_configuration[:account_types].sort }
     
     before(:all) do
       VCR.use_cassette("accounts_capital_one_360") do
-        @bank = Dinero::Bank::CapitalOne360.new(bank_configurations["capital_one_360"])
+        @bank = Dinero::Bank::CapitalOne360.new(bank_configurations[:capital_one_360])
         @bank.accounts
       end
     end
@@ -25,6 +25,10 @@ if bank_configured? :capital_one_360
       expect(@bank.accounts.map(&:name)).to include /Checking|Savings/
     end
   
+    it "does not include junk data in the names" do 
+      @bank.accounts.each{|acct| expect(acct.name).to_not include "Opens a new window"}
+    end
+    
     it "extracts account numbers" do 
       expect(@bank.accounts.map(&:number).select{|s| s.to_s.scan /\A\d+\Z/}).to_not be_empty
     end
