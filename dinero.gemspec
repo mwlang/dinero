@@ -1,12 +1,12 @@
 # $:.push File.expand_path("../lib", __FILE__)
 
 # Maintain your gem's version:
-require "dinero/version"
+# require "dinero/version"
 
 # Describe your gem and declare its dependencies:
 Gem::Specification.new do |s|
   s.name        = "dinero"
-  s.version     = Dinero::VERSION
+  s.version     = "0.0.1"
   s.authors     = ["Michael Lang"]
   s.email       = ["mwlang@cybrains.net"]
   s.homepage    = "https://github.com/mwlang/dinero"
@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
   s.license     = "MIT"
 
   s.files = Dir["{examples,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
-  s.require_paths ["lib"]
+  s.require_paths = ["lib"]
   s.test_files = Dir["spec/**/*"]
 
   s.add_development_dependency "rspec", "~> 3.2.0"
