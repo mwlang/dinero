@@ -28,6 +28,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "simplecov", "~> 0.10.0"
   spec.add_development_dependency "pry-byebug", "~> 3.1.0"
 
-  spec.add_dependency 'selenium-webdriver', "~> 2.45.0"
+  spec.add_dependency 'selenium-webdriver', "~> 3.0"
   spec.add_dependency "nokogiri", "~> 1.6.6"
 end

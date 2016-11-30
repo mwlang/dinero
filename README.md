@@ -13,11 +13,11 @@ Banks are rightly concerned about security, anti-phishing, and general brute for
 So much trickery requires something more than just Mechanize or RestClient.  Dinero uses Selenium and PhantomJS to drive the data collection.  So, you'll need to install Selenium before you can begin using Dinero.  If you're on a mac:
 
     brew install selenium-server-standalone
-    
-And then: 
+
+And then:
 
     gem install dinero
-    
+
 ## The Vision
 
 Much like ActiveRecord sought to standardize the API for accessing and modeling domain data in the DBMS without having to drop down to raw SQL and as ActiveMerchant seeks to standardize payment processing to a common set of API's, Dinero aims to standardize access to bank accounts.  To that end, I have started implementing all the banks I have accounts with.
@@ -28,8 +28,9 @@ The following banks are implemented:
 
 * Capital One - https://capitalone.com (only U.S. credit card logins -- there's also banking, loans, investing, business, and Canada/UK credit cards)
 * Capital One 360 - https://capitalone360.com (formerly Ing Direct).  
+* South State Bank - https://www.southstatebank.com/
 
-Currently, only Accounts balances are essentially implemented.  The following properties are available on each Account:
+Currently, only Accounts balances are implemented.  The following properties are available on each Account:
 
   * account_type -- one of :bank, :brokerage, :credit_card
   * name -- the name of the account (e.g. "Checking 360 - primary", "Worldview MasterCard")
@@ -39,7 +40,7 @@ Currently, only Accounts balances are essentially implemented.  The following pr
 
 ## How to Use
 
-You'll find at least one example in the examples folder called 'get_balances.'  This example can take a bank_name, username, and password and print out balances to the console something like this:
+You'll find at least one example in the examples folder called 'get_balances.rb'  This example can take a bank_name, username, and password and print out balances to the console something like this:
 
 ~~~ bash
 >> bundle exec ruby examples/get_balances.rb --bank capital_one_360 --user scrooge
@@ -63,15 +64,28 @@ So, yeah, with more banks, we can collect more info.  The above shows banking ac
 
 To use the gem inside your app:
 
-~~~
+~~~ ruby
 require 'dinero'
 
-bank_info = CapitalOne360.new(username: @username, password: @password))
+bank_info = Dinero::Bank::CapitalOne360.new(username: @username, password: @password))
 bank_info.accounts.each do |acct|
-puts [acct.name, acct.number, acct.account_type, acct.balance, acct.available].join("\t")
+  puts [acct.name, acct.number, acct.account_type, acct.balance, acct.available].join("\t")
+end
 ~~~
 
 If you have a really slow Bank site or Internet connection, try passing ```timeout: 15``` when initializing a Bank class.
+
+For banks that ask security questions on new computers (such as South State Bank), supply an array of question/answer hashes as "security_questions" when instantiating the Bank object.  For example:
+
+~~~ ruby
+answers = [
+  {"question" => "What is your favorite hobby?",        "answer"=>"ruby"},
+  {"question" => "What is your father's middle name?",  "answer"=>"smith"},
+  {"question" => "What was your first job?",            "answer" => "student"}
+]
+bank_info = Dinero::Bank::CapitalOne360.new(username: @username, password: @password, security_questions: answers))
+# ...
+~~~
 
 ## Contribute!
 
@@ -83,10 +97,7 @@ I plan to implement the following banks:
   * Scottrade (brokerage, IRA, and Bank Account)
   * San Diego County Credit Union
   * Georgia's Own Credit Union
-  * South State Bank
 
-I know I'll need to do those fun security questions for unregistered browsers on some of these.  I haven't quite decided on how to structure this, but at least the Bank class has an open-ended options hash parameter to accommodate additional fields being passed in.
-  
 If you want to add a new bank, here's how:
 
   # Pick one of the existing banks that most closely follows the login pattern of your chosen bank and model your effort after it.
@@ -100,18 +111,32 @@ Here's an example banks.yml file:
 capital_one_360:
   username: mickeymouse
   password: moosamoosamickeymouse
-  account_types: 
+  account_types:
     - :bank
     - :brokerage
     - :credit_card
   accounts: 3
-  
+
 capital_one:
   username: mickeymouse
   password: moosamoosamickeymouse
-  account_types: 
+  account_types:
     - :credit_card
   accounts: 2
+
+south_state_bank:
+  username: mickeymouse
+  password: moosamoosamickeymouse
+  account_types:
+    - :bank
+  accounts: 3
+  security_questions:
+    - question: "What is your favorite hobby?"
+      answer: ruby
+    - question: "What is your father's middle name?"
+      answer: smith
+    - question: "What was your first job?"
+      answer: student
 ~~~
 
 The bank rspecs are wrapped with ```if bank_configured? :capital_one_360``` if block that allows the spec to run or not, so if the first thing you did was 'rspec' and saw 0 examples, that means you don't have a banks.yml file, yet -- or it's incorrectly configured.
@@ -147,7 +172,7 @@ def post_username!
 end
 ~~~
 
-### #post_password! 
+### #post_password!
 Here, key the password and submit the form.  You may have to get the handle on the button and call the button.click method instead of simply calling form.submit as some banks put JavaScript here to make sure the button's being clicked rather than automated submittals via scripts.  The implementation should look something like this:
 
 ~~~ ruby

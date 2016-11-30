@@ -6,7 +6,7 @@ while !args.empty? do
   if option =~ /\A\-\-/
     value = args.shift
   end
-  case option 
+  case option
   when "--bank" then @bank = value
   when "--user" then @username = value
   when "--password" then @password = value
@@ -42,7 +42,7 @@ else
   usage: bundle exec ruby examples/get_balances.rb --bank <bank_name> --user <login_account_name> [--password <login_password>]
 
   * bank_name needs to match one of the class_names supported in the lib/banks folder.
-  * if password omitted, you'll be prompted to supply one. 
-    
+  * if password omitted, you'll be prompted to supply one.
+
   USAGE
 end

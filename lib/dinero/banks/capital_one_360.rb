@@ -41,6 +41,11 @@ module Dinero
         submit_button.click
       end
 
+      def post_credentials!
+        post_username!
+        post_password!
+      end
+      
       def accounts_summary_page_fully_loaded?
         tables = connection.find_elements css: 'table'
         !(tables.empty? or tables.detect{|t| t.text =~ /\sLoading/})
@@ -68,7 +73,7 @@ module Dinero
 
       def decipher_account_type title
         return :credit_card if title =~ /Credit Cards/
-        return :brokerage if title =~ /ShareBuilder/
+        return :brokerage if title =~ /Investing/
         return :bank if title =~ /Checking/
         return :unknown
       end
