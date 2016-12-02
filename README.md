@@ -29,6 +29,7 @@ The following banks are implemented:
 * Capital One - https://capitalone.com (only U.S. credit card logins -- there's also banking, loans, investing, business, and Canada/UK credit cards)
 * Capital One 360 - https://capitalone360.com (formerly Ing Direct).  
 * South State Bank - https://www.southstatebank.com/
+* San Diego County Credit Union - https://www.sdccu.com/
 
 Currently, only Accounts balances are implemented.  The following properties are available on each Account:
 
