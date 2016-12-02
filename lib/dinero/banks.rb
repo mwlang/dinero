@@ -30,9 +30,8 @@ module Dinero
 
       def establish_connection
         capabilities = Selenium::WebDriver::Remote::Capabilities.phantomjs(
-          'acceptSslCerts' => true,
           'phantomjs.page.settings.userAgent' => 'Mozilla/5.0 (X11; Linux x86_64; rv:31.0) Gecko/20100101 Firefox/33.0',
-          'service_args' => ['--ignore-ssl-errors=true']
+          'service_args' => ['--ignore-ssl-errors=true', '--ssl-protocol=any']
         )
 
         driver = Selenium::WebDriver.for :phantomjs, :desired_capabilities => capabilities
