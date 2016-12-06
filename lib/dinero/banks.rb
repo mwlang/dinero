@@ -28,9 +28,17 @@ module Dinero
         {}
       end
 
+      def find_answer question
+        if q = security_questions.detect{ |qa| qa["question"] == question }
+          return q["answer"]
+        else
+          raise "Unknown security question: #{question.inspect}"
+        end
+      end
+
       def establish_connection
         capabilities = Selenium::WebDriver::Remote::Capabilities.phantomjs(
-          'phantomjs.page.settings.userAgent' => 'Mozilla/5.0 (X11; Linux x86_64; rv:31.0) Gecko/20100101 Firefox/33.0',
+          'phantomjs.page.settings.userAgent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:50.0) Gecko/20100101 Firefox/50.0',
           'service_args' => ['--ignore-ssl-errors=true', '--ssl-protocol=any']
         )
 

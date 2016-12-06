@@ -33,14 +33,6 @@ module Dinero
         end
       end
 
-      def find_answer question
-        if q = security_questions.detect{ |qa| qa["question"] == question }
-          return q["answer"]
-        else
-          raise "Unknown security question: #{question.inspect}"
-        end
-      end
-
       def post_security_answer!
         return if on_accounts_summary_page?
         screenshot_on_error do

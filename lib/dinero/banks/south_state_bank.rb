@@ -21,14 +21,6 @@ module Dinero
         end
       end
 
-      def find_answer question
-        if q = security_questions.detect{ |qa| qa["question"] == question }
-          return q["answer"]
-        else
-          raise "Unknown security question: #{question.inspect}"
-        end
-      end
-
       def post_security_answer!
         screenshot_on_error do
           wait.until { connection.find_element(id: "nav2t") }
