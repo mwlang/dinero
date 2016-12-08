@@ -40,10 +40,10 @@ module Dinero
           question_text = connection.find_element(id: "lblChallengeQuestion").text
           answer = find_answer question_text
 
-          answer_field = connection.find_element(id: "QuestionAnswer")
+          answer_field = connection.find_element(id: "txtAnswer")
           answer_field.send_keys answer
 
-          submit_button = logon_form.find_element(id:"btnSubmitAnswer")
+          submit_button = connection.find_element(id:"btnSubmitAnswer")
           submit_button.click
         end
       end
